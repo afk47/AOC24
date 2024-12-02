@@ -3,76 +3,82 @@
 #include <string.h>
 #include <stdbool.h>
 
-int partOne();
-int partTwo();
+bool lineSafe(int *line, int length);
+bool lineSafeDamp(int *line, int length);
 
 int main()
 {
-    printf("%d\n", partOne());
-    printf("%d\n", partTwo());
-    return 0;
-}
-
-int partOne()
-{
-    int output = 0;
+    int partOne = 0;
+    int partTwo = 0;
 
     FILE *file = fopen("input.txt", "r");
 
-    char line[2048];
+    char line[1000];
+    int numbers[100];
 
     if (NULL == file)
         return -1;
 
     while (fgets(line, sizeof(line), file))
     {
-
+        int length = 0;
         char *token = strtok(line, " ");
-        char *endptr;
-
-        long last = strtol(token, &endptr, 10);
-
-        bool valid = true;
-
-        int state = -1; // -1 undefined, 0 decreasing, 1 increasing
-        while ((token = strtok(NULL, " ")) != NULL)
+        while (token != NULL)
         {
-
-            long curr = strtol(token, &endptr, 10);
-            if (state == -1)
-            {
-                state = curr > last;
-            }
-            if (state == 0)
-            {
-                if (!(curr - last <= -1 && curr - last >= -3))
-                {
-                    valid = false;
-                    break;
-                }
-            }
-            else
-            {
-                if (!(curr - last <= 3 && curr - last >= 1))
-                {
-                    valid = false;
-                    break;
-                }
-            }
-
-            last = curr;
+            numbers[length++] = atoi(token);
+            token = strtok(NULL, " ");
         }
-        if (valid)
-            output++;
-    }
 
+        if (lineSafe(numbers, length))
+        {
+            partOne++;
+            partTwo++;
+        }
+        else if (lineSafeDamp(numbers, length))
+        {
+            partTwo++;
+        }
+    }
     fclose(file);
-    return output;
+
+    printf("Part One: %d\nPart Two: %d\n", partOne, partTwo);
+
+    return 0;
 }
 
-int partTwo()
+bool lineSafe(int *line, int length)
 {
-    int output = 0;
+    bool allinc = true;
+    bool alldec = true;
+    for (int i = 0; i < length - 1; i++)
+    {
+        int diff = line[i + 1] - line[i];
+        if (diff < 1 || diff > 3)
+            allinc = false;
+        if (diff > -1 || diff < -3)
+            alldec = false;
+    }
 
-    return output;
+    return allinc || alldec;
+}
+
+bool lineSafeDamp(int *line, int length)
+{
+    for (int i = 0; i < length; i++)
+    {
+        int newline[100];
+        int idx = 0;
+        for (int j = 0; j < length; j++)
+        {
+            if (j != i)
+            {
+                newline[idx++] = line[j];
+            }
+        }
+        if (lineSafe(newline, length - 1))
+        {
+            return true;
+        }
+    }
+    return false;
 }
